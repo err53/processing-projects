@@ -1,42 +1,46 @@
-import processing.core.PApplet;
-import processing.core.PVector;
+import processing.core.*;
 
 import java.util.ArrayList;
 
-/**
- * Functional radar that is interactive and uses {@link processing.core.PApplet#rect(float, float, float, float)},
- * {@link processing.core.PApplet#arc(float, float, float, float, float, float)},
- * {@link processing.core.PApplet#ellipse(float, float, float, float)}, and
- * {@link processing.core.PApplet#point(float, float)}. Custom Point class was created to easily make and remove radar
- * points. Radar checks for mouse position every 30 frames, updating the line coordinates with {@link Main#circlePoint()},
- * and checking with {@link Main#pointLies()}. The condition of the points are also updated with {@link Main#updatePoints()},
- * and an alert is drawn with {@link Main#drawAlert()} every time a point is created.
- *
- * @author Jason Huang
- * @see processing.core.PApplet
- * @see Point
- */
 public class Main extends PApplet {
 
+    /**
+     * Functional radar that is interactive and uses {@link processing.core.PApplet#rect(float, float, float, float)},
+     * {@link processing.core.PApplet#arc(float, float, float, float, float, float)},
+     * {@link processing.core.PApplet#ellipse(float, float, float, float)}, and
+     * {@link processing.core.PApplet#point(float, float)}. Custom Point class was created to easily make and remove radar
+     * points. Radar checks for mouse position every 30 frames, updating the line coordinates with {@link Main#circlePoint()},
+     * and checking with {@link Main#pointLies(float, float, float, float, float, float)}. The condition of the points are also updated with {@link Main#updatePoints()},
+     * and an alert is drawn with {@link Main#drawAlert()} every time a point is created.
+     *
+     * @author Jason Huang
+     * @see processing.core.PApplet
+     * @see Point
+     */
+
+    public static void main(String[]args){
+        PApplet.main("Main");
+    }
+
     float arcStart = 0, arcX, arcY; // Start position of arc (in degrees), point of arc on outside circle
-                                    // arcX and arcY are dependent on the position of arcStart and will be updated
-                                    // when needed
+    // arcX and arcY are dependent on the position of arcStart and will be updated
+    // when needed
 
     int colorR = 0, colorG = 255, colorB = 0; // Set color scheme of radar
 
 
-    ArrayList<Point> points = new ArrayList<>(); // List of drawn points
+    ArrayList<Point> points = new ArrayList<Point>(); // List of drawn points
 
     int frameCounter = 30;  // Count elapsed frames
 
     int alertBrightness = 0; // Brightness of PING! alert;
 
-    public static void main(String[] args) {
-        PApplet.main("Main");
+    public void settings() {
+        size(600, 600, P2D); // Set size of window;
     }
 
-    public void settings() {
-        size(600, 600, P3D); // Set size of window;
+    public void setup() {
+        smooth();
     }
 
     public void draw() {
@@ -46,28 +50,30 @@ public class Main extends PApplet {
         background(0);
 
 
-        /* Draw Message */
-
-
         /* Draw Arcs */
 
-        // Draw First arc
+//        // Draw First arc
+//        noStroke();
+//        fill(colorR, colorG, colorB, 221);
+//        arc(width / 2, height / 2, 280, 280, radians(arcStart - 5), radians(arcStart));
+//
+//        // Draw Second Arc
+//        fill(colorR, colorG, colorB, 160);
+//        arc(width / 2, height / 2, 280, 280, radians(arcStart - 10), radians(arcStart - 5));
+//
+//        // Draw Third Arc
+//        fill(colorR, colorG, colorB, 119);
+//        arc(width / 2, height / 2, 280, 280, radians(arcStart - 50), radians(arcStart - 10));
+//
+//        // Draw Fourth Arc
+//        fill(colorR, colorG, colorB, 61);
+//        arc(width / 2, height / 2, 280, 280, radians(arcStart - 160), radians(arcStart - 50));
+
         noStroke();
-        fill(colorR, colorG, colorB, 221);
-        arc(width / 2, height / 2, 280, 280, radians(arcStart - 5), radians(arcStart));
-
-        // Draw Second Arc
-        fill(colorR, colorG, colorB, 160);
-        arc(width / 2, height / 2, 280, 280, radians(arcStart - 10), radians(arcStart - 5));
-
-        // Draw Third Arc
-        fill(colorR, colorG, colorB, 119);
-        arc(width / 2, height / 2, 280, 280, radians(arcStart - 50), radians(arcStart - 10));
-
-        // Draw Fourth Arc
-        fill(colorR, colorG, colorB, 61);
-        arc(width / 2, height / 2, 280, 280, radians(arcStart - 160), radians(arcStart - 50));
-
+        for (int i = 0; i <= 200; i++) {
+            fill(colorR, colorG, colorB, 200 - i);
+            arc(width / 2, height / 2, 280, 280, radians(arcStart - i - 1), radians(arcStart - i));
+        }
 
         /* Draw Lines */
 
@@ -158,7 +164,7 @@ public class Main extends PApplet {
             // Update position of line on circle
             circlePoint();
 
-            if (pointLies()) {  // If point lies on the first part of the arc
+            if (pointLies(width / 2, height / 2, arcX, arcY, mouseX, mouseY)) {  // If point lies on the first part of the arc
                 // Add new points dynamically to Array List of points
                 points.add(new Point(mouseX, mouseY, 255, 10));
                 alertBrightness = 255;
@@ -191,13 +197,13 @@ public class Main extends PApplet {
                 /* Animate Point brightness and size */
 
                 // If brightness is above zero
-                if (points.get(i).getBrightness() > 0) {
+                if (points.get(i).getBrightness() >= 1) {
                     // Decrease brightness
                     points.get(i).setBrightness(points.get(i).getBrightness() - 1);
                 }
 
                 // If size is greater than zero
-                if (points.get(i).getSize() > 0) {
+                if (points.get(i).getSize() >= 0.025) {
                     // Decrease size
                     points.get(i).setSize((float) (points.get(i).getSize() - 0.025));
                 }
@@ -228,41 +234,99 @@ public class Main extends PApplet {
      * @see Main
      * @return If the mouse lies between the centre of the circle and the edge of the arc
      */
-    public boolean pointLies() {
+    public boolean pointLies(float Ax, float Ay, float Bx, float By, float Px, float Py) {
 
-        // Get distance of mouse from centre
-        float distanceXFromCenter = mouseX - width / 2;
-        float distanceYFromCenter = mouseY - height / 2;
-
-        // Get distance of arc Point from centre
-        float distanceXFromArcPoint = arcX - width / 2;
-        float distanceYFromArcPoint = arcY - width / 2;
-
-        // Get cross value of point to determine distance of mouse from Euclidean line passing through the arc and the
-        // centre (distance is squared)
-        float cross = distanceXFromCenter * distanceYFromArcPoint - distanceYFromCenter * distanceXFromArcPoint;
-
-        // Print absolute cross distance (for debugging reasons)
-        System.out.println(abs(cross));
-
-        double threshold = 1000; // Set threshold of intersection (distance is squared)
-        if (abs(cross) > threshold) return false; // Check if mouse is along same line as the radar, return false if not
-
-        // If the absolute x distance is greater than or equal to the y distance
-        if (abs(distanceXFromArcPoint) >= abs(distanceYFromArcPoint)) {
-            // Return if the x value of the mouse position is between the x value of the centre and the x value of the
-            // point on the circle
-            return distanceXFromArcPoint > 0 ?
-                    width / 2 <= mouseX && mouseX <= arcX :
-                    arcX <= mouseX && mouseX <= width / 2;
+        if (abs(sqrt(sq(Ax-Px) + sq(Ay-Py)) +
+                sqrt(sq(Px - Bx) + sq(Py - By)) -
+                sqrt(sq(Ax-Bx) + sq(Ay-By)))
+                <= 2) {    // If the difference between the line from A to B passing through coordinates P is and the line directly from A to B is within 2 pixels, return true
+            return true;
         }
-        // If the absolute x distance is less than the y distance
-        else {
-            // Return if the y value of the mouse position is etween the y value of the centre and the y value of the
-            // point on the circle
-            return distanceYFromArcPoint > 0 ?
-                    height / 2 <= mouseY && mouseY <= arcY :
-                    arcY <= mouseY && mouseY <= height / 2;
+
+        // Else, return false
+        return false;
+    }
+    /**
+     * Custom point class that contains the coordinates, brightness, and size of the point
+     *
+     * @author Jason Huang
+     * @see Main
+     */
+    public class Point {
+        private float x, y, brightness, size;
+
+        /**
+         * Point Constructor
+         *
+         * @param x             x-coordinate of the point
+         * @param y             y-coordinate of the point
+         * @param brightness    brightness of the point
+         * @param size          size of the point
+         *
+         * @author Jason Huang
+         * @see Main
+         */
+        public Point(float x, float y, float brightness, float size) {
+
+            // Assign values for position
+            this.x = x;
+            this.y = y;
+            this.brightness = brightness;
+            this.size = size;
+        }
+
+        // Getter and Setter functions
+
+        // There are no setter functions for X and Y, as the coordinates of a point should be immutable
+
+        /**
+         * Get X-value
+         * @return X-value of point
+         */
+        public float getX() {
+            return x;
+        }
+
+        /**
+         * Get Y-value
+         * @return Y-value of point
+         */
+        public float getY() {
+            return y;
+        }
+
+        // The brightness and the size change throughout the point's life, so we can modify them through setter functions
+
+        /**
+         * Get Brightness
+         * @return Brightness of point
+         */
+        public float getBrightness() {
+            return brightness;
+        }
+
+        /**
+         * Set Brightness
+         * @param brightness Brightness of point
+         */
+        public void setBrightness(float brightness) {
+            this.brightness = brightness;
+        }
+
+        /**
+         * Get Size
+         * @return Size of point
+         */
+        public float getSize() {
+            return size;
+        }
+
+        /**
+         * Set Size
+         * @param size Size of point
+         */
+        public void setSize(float size) {
+            this.size = size;
         }
     }
 }
